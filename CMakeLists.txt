@@ -65,3 +65,8 @@ install(FILES ${NFLLIB_HDRS_4} DESTINATION include/nfl/opt/arch)
 install(FILES ${NFLLIB_PRNG_HDRS} DESTINATION include/nfl/prng)
 
 add_subdirectory(tests)
+
+# test program
+set(main_src app/main.cpp)
+add_executable(nfl_test ${main_src})
+target_link_libraries(nfl_test nfllib_static ${GMP_LIBRARY} ${MPFR_LIBRARY} -lgmpxx)
