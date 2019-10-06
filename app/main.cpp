@@ -5,10 +5,58 @@
 #include <gmpxx.h>
 
 // cipher text ring, have two moduli, i.e. 15361, 13313
-using C = nfl::poly_from_modulus<uint16_t, 16, 28>;
+using T = uint64_t;
+
+template <typename _T>
+struct Para;
+
+template <>
+struct Para<uint16_t> {
+    constexpr static auto p = 1;
+    constexpr static auto q = 2;
+    constexpr static auto degree = 16;
+};
+
+template <>
+struct Para<uint32_t> {
+    constexpr static auto p = 10;
+    constexpr static auto q = 11;
+    constexpr static auto degree = 128;
+};
+
+template <>
+struct Para<uint64_t> {
+    constexpr static auto p = 10;
+    constexpr static auto q = 11;
+    constexpr static auto degree = 1 << 15;
+};
+
+template <typename _T>
+struct pair {
+    _T x;
+    _T y;
+};
+
+struct C {
+    using poly = nfl::poly<T, Para<T>::degree, Para<T>::q>;
+    using poly_ptr = nfl::poly_p<T, Para<T>::degree, Para<T>::q>;
+};
+
+struct P {
+    using poly = nfl::poly<T, Para<T>::degree, Para<T>::p>;
+    using poly_ptr = nfl::poly_p<T, Para<T>::degree, Para<T>::p>;
+};
+
+
+static nfl::FastGaussianNoise<uint16_t, T, 2> fg(8, 80, Para<T>::degree);
+static nfl::gaussian<uint16_t, T, 2> chi(&fg);
+
 // plain text ring, only have one modulus
-using P = nfl::poly_from_modulus<uint16_t, 16, 14>;
-using key = std::pair<C, C>;
+
+using Cipher = std::pair<C::poly_ptr, C::poly_ptr>;
+using Keys = std::tuple<C::poly_ptr, C::poly_ptr, C::poly_ptr>;
+
+using Chi = nfl::gaussian<uint16_t, T, 2>;
 
 void roundNearest(mpz_t out, mpz_t in, mpz_t div) {
     mpz_t q, r;
@@ -25,27 +73,32 @@ void roundNearest(mpz_t out, mpz_t in, mpz_t div) {
     mpz_mul(out, q, div);
 }
 
-std::pair<key, C> keygen(const nfl::gaussian<uint8_t, uint16_t, 2>& chi) {
+Keys genKeys() {
+
+
     // first uniformly choose a
-    C a(nfl::uniform{});
+    C::poly a(nfl::uniform{});
     // ignore sigma since only one here
     // gaussian dist
-    C s(chi);
-    C e(chi);
+    C::poly s(nfl::uniform{});
+    C::poly e(nfl::uniform{});
 
     // keep everything in FFT domain
     a.ntt_pow_phi();
     s.ntt_pow_phi();
     e.ntt_pow_phi();
 
-    C b = s * a + e;
-    // return (public key, private key)
-    return {{a, b}, s};
+    C::poly b = s * a + e;
+    // return (public Cipher, private Cipher)
+    C::poly_ptr A(a), B(b), S(s);
+    return {A, B, S};
 }
 
-key encrypt(const nfl::gaussian<uint8_t, uint16_t, 2>& chi, const key& k, P& message) {
-    //C u(chi), v(chi), w(chi);
-    C u{}, v{}, w{};  // no noise now
+
+Cipher encrypt(Cipher k, P::poly_ptr message) {
+    C::poly u(chi), v(chi), w(chi);
+    C::poly message_q(0);
+    //C u{}, v{}, w{};  // no noise now
 
     // keep everything in FFT domain
     u.ntt_pow_phi();
@@ -53,39 +106,43 @@ key encrypt(const nfl::gaussian<uint8_t, uint16_t, 2>& chi, const key& k, P& mes
     w.ntt_pow_phi();
 
     // transform Q/P to polynomial
-    auto qdivp = C(k.first.get_modulus(1));
+    auto qdivp = C::poly(std::get<0>(k).get_modulus(1));
     qdivp.ntt_pow_phi();
     // transform message from mod P to mod Q
-    C message_q;
-    auto arr = message.poly2mpz();
-    message_q.mpz2poly(arr);
+    //auto arr = message.poly2mpz();
 
-    C fst = u * k.first + v;
-    C sec = u * k.second + w + qdivp * message_q ;
+    C::poly_ptr fst = C::poly_ptr(u) * std::get<0>(k) + C::poly_ptr(v);
+    C::poly_ptr sec = C::poly_ptr(u) * std::get<1>(k) + C::poly_ptr(w) ;
 
     return {fst, sec};
 }
 
-C decrypt(const key& cipher, const C& s) {
-    C dec = cipher.second - cipher.first * s;
+C::poly_ptr decrypt(Cipher cipher, C::poly_ptr s) {
+
+    C::poly_ptr dec = std::get<1>(cipher) - std::get<0>(cipher) * s;
     return dec;
+}
+
+void fuck(Cipher c, P::poly_ptr m) {
+    return;
 }
 
 
 int main() {
-    constexpr auto lambda = 80;
-    constexpr auto degree = 16;  // simple one for now
-    auto fg = nfl::FastGaussianNoise<uint8_t, uint16_t, 2>(3.2, lambda, degree);
-    auto chi = nfl::gaussian<uint8_t, uint16_t, 2>(&fg);
-    auto [k, s] = keygen(chi);
-    auto test = nfl::poly_from_modulus<uint16_t, degree, 14>({1, 2, 3, 4});
+ 
+    //genKeys();
+    P::poly test{1,2,3,4,5,6,7};     // in fact this one already made invalid memory access
+    std::make_pair<P::poly, P::poly>(P::poly{0}, P::poly{1});  // and this one always trigger seg fault
+    //P::poly_ptr tp{test};
+
+    //std::pair<C::poly_ptr, C::poly_ptr> kaj = {a, b};
     
-    key enc = encrypt(chi, k, test);
-    C d = decrypt(enc, s);
+    //Cipher enc = encrypt(kaj, tp);
+/*     C::poly_ptr d = decrypt(enc, s);
 
     // get coefficient
     d.invntt_pow_invphi();
-    std::array<mpz_t, degree> tt = d.poly2mpz();  // convert poly to an array
+    std::array<mpz_t, Para<T>::degree> tt = d.poly2mpz();  // convert poly to an array
 
     // get Q/P
     auto m = d.get_modulus(1);
@@ -104,8 +161,9 @@ int main() {
     tt = d.poly2mpz();
     
     // and the result is incorrect for now
-    for (auto it = tt.begin(); it != tt.end(); it++) {
+    for (auto it = tt.begin(); it != tt.begin() + 8; it++) {
+        mpz_tdiv_q(*it, *it, mm);
         std::cout << *it << std::endl;
-    }
+    } */
     return 1;
 }
