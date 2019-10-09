@@ -239,7 +239,7 @@ mpz_class genZ1(const mpz_class& tau, const mpz_class& N, size_t lambda) {
 C::poly decrypt(Cipher cipher, C::poly s) {
     // TODO: optimize this
     mpz_class p(1);
-    for (auto i = Para<T>::p; i < Para<T>::q; i++) {
+    for (auto i = 0; i < Para<T>::p; i++) {
         p = p * nfl::params<T>::P[i];
     }
     mpz_class tau(1000), N(2);
