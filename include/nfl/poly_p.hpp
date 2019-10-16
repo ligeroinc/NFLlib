@@ -40,6 +40,9 @@ public:
     _p(make_pointer(std::forward<Args>(args)...))
   { }
 
+  poly_p(std::initializer_list<T> values): _p(std::make_shared<poly_type>(std::forward<decltype(values)>(values)))
+  { }
+
   poly_p(poly_type const&) = delete;
   poly_p(poly_type&&) = delete;
 
