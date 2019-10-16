@@ -187,7 +187,7 @@ public:
   /* serializer (cereal)
   */
   template<class Archive> void serialize(Archive & archive) { 
-    archive( _data ); // serialize coefficients by passing them to the archive
+    archive & _data; // serialize coefficients by passing them to the archive
   }
 
   protected:
