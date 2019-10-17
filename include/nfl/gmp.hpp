@@ -55,7 +55,41 @@ void poly<T, Degree, NbModuli>::set_mpz(mpz_class const& v) {
 template <class T, size_t Degree, size_t NbModuli>
 void poly<T, Degree, NbModuli>::set_mpz(
     std::array<mpz_t, Degree> const& values) {
-  set_mpz(values.begin(), values.end());
+  // CRITICAL: the object must be 32-bytes aligned to avoid vectorization issues
+  assert((unsigned long)(this->_data) % 32 == 0);
+
+  auto first = values.begin();
+  auto last = values.end();
+  // The initializer needs to have either less values than the polynomial degree
+  // (and the remaining coefficients are set to 0), or be fully defined (i.e.
+  // the degree*nmoduli coefficients needs to be provided)
+  size_t size = std::distance(first, last);
+  if (size > degree && size != degree * nmoduli) {
+    throw std::runtime_error(
+        "gmp: CRITICAL, initializer of size above degree but not equal "
+        "to nmoduli*degree");
+  }
+
+  auto* iter = begin();
+  auto viter = first;
+
+  for (size_t cm = 0; cm < nmoduli; cm++) {
+    auto const p = get_modulus(cm);
+
+    if (size != degree * nmoduli) viter = first;
+
+    // set the coefficients
+    size_t i = 0;
+    for (; i < degree && viter < last; ++i, ++viter, ++iter) {
+      //if constexpr (std::is_same<typename It::value_type, mpz_class>::value) {
+        *iter = mpz_fdiv_ui(*viter, p);
+    }
+
+    // pad with zeroes if needed
+    for (; i < degree; ++i, ++iter) {
+      *iter = 0;
+    }
+  }
 }
 
 template <class T, size_t Degree, size_t NbModuli>
