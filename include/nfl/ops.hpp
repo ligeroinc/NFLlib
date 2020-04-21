@@ -47,7 +47,7 @@ auto SYM(nfl::ops::expr<Op0, Args0...> const& op0,  nfl::ops::expr<Op1, Args1...
 namespace ops {
 
 template<class Arg, class... Args>
-  constexpr Arg first_of(Arg arg, Args... args) { return arg; }
+  constexpr Arg first_of(Arg arg, [[maybe_unused]] Args... args) { return arg; }
 
 template <class Op, class... Args>
 struct expr {
