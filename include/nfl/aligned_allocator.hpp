@@ -107,7 +107,7 @@ class aligned_allocator {
 
 template <class T, int N>
 typename aligned_allocator<T, N>::pointer aligned_allocator<T, N>::allocate(
-    size_type n, typename std::allocator<void>::const_pointer hint) {
+    size_type n, [[maybe_unused]] typename std::allocator<void>::const_pointer hint) {
   pointer res = reinterpret_cast<pointer>(aligned_malloc(sizeof(T) * n, N));
   if (res == 0) throw std::bad_alloc();
   return res;

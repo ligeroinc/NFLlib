@@ -537,7 +537,7 @@ template<class T, size_t Degree, size_t NbModuli> bool poly<T, Degree, NbModuli>
 // inv_wtab, inv_winvtab tables for the inverse operation and invK the
 // inverse of the polynomialDegree
 template<class T, size_t Degree, size_t NbModuli> inline bool poly<T, Degree, NbModuli>::core::inv_ntt(value_type * x, const value_type* const inv_wtab, const value_type* const inv_winvtab,
-    const value_type invK, value_type const p)
+    [[maybe_unused]] const value_type invK, value_type const p)
 {
   alignas(32) value_type y[degree+1];
 

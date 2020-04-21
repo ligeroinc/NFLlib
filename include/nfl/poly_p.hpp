@@ -159,7 +159,7 @@ public:
     archive( poly_obj() );
   }
 
-  template<class Archive> void serialize(Archive & archive, const unsigned int version) { 
+  template<class Archive> void serialize(Archive & archive, [[maybe_unused]] const unsigned int version) { 
     poly_obj().serialize(archive);
   }
 
