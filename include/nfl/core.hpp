@@ -2,6 +2,7 @@
 #define NFL_CORE_HPP
 
 #include <type_traits>
+#include <iterator>
 #include <vector>
 #include <numeric>
 #include <algorithm>
@@ -124,8 +125,17 @@ void poly<T, Degree, NbModuli>::set(It first, It last, bool reduce_coeffs) {
 
     // set the coefficients
     size_t i = 0;
-    for (; i < degree && viter < last; ++i, ++viter, ++iter) {
-      *iter = reduce_coeffs ? (*viter) % p : *viter;
+    if constexpr (std::is_same<typename std::iterator_traits<It>::value_type, mpz_class>::value) {
+            mpz_class mpzp{static_cast<size_t>(p)};
+            for (; i < degree && viter < last; ++i, ++viter, ++iter) {
+                mpz_class mod = *viter % mpzp;
+                *iter = reduce_coeffs ? mod.get_ui() : viter->get_ui();
+            }
+    }
+    else {
+        for (; i < degree && viter < last; ++i, ++viter, ++iter) {
+            *iter = reduce_coeffs ? (*viter) % p : *viter;
+        }
     }
 
     // pad with zeroes if needed
