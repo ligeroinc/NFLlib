@@ -6,6 +6,8 @@
  * http://jmabille.github.io/blog/2014/12/06/aligned-memory-allocator/
  */
 
+#include <memory>
+
 namespace nfl {
 
 namespace detail {
@@ -85,8 +87,9 @@ class aligned_allocator {
   inline pointer address(reference r) { return &r; }
   inline const_pointer address(const_reference r) const { return &r; }
 
-  pointer allocate(size_type n,
-                   typename std::allocator<void>::const_pointer hint = 0);
+  pointer allocate(
+      size_type n,
+      typename std::allocator_traits<std::allocator<void>>::const_void_pointer hint = 0);
   inline void deallocate(pointer p, size_type);
 
   template <typename... Args>
@@ -107,7 +110,7 @@ class aligned_allocator {
 
 template <class T, int N>
 typename aligned_allocator<T, N>::pointer aligned_allocator<T, N>::allocate(
-    size_type n, [[maybe_unused]] typename std::allocator<void>::const_pointer hint) {
+    size_type n, [[maybe_unused]] typename std::allocator_traits<std::allocator<void>>::const_void_pointer hint) {
   pointer res = reinterpret_cast<pointer>(aligned_malloc(sizeof(T) * n, N));
   if (res == 0) throw std::bad_alloc();
   return res;
