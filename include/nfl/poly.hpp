@@ -93,6 +93,7 @@ public:
   using signed_value_type = typename params<T>::signed_value_type;
   using pointer_type = T*;
   using const_pointer_type = T const*;
+  typedef T array_type[N];
 
   using iterator = pointer_type;
   using const_iterator = const_pointer_type;
@@ -160,6 +161,8 @@ public:
   /* misc
    */
   pointer_type data() { return _data; }
+  array_type& array() { return _data; }
+  const array_type& array() const { return _data; }
   static constexpr value_type get_modulus(size_t n) { return params<T>::P[n]; }
 
   /* ntt stuff - public API
