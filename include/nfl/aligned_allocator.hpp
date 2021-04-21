@@ -85,8 +85,8 @@ class aligned_allocator {
   inline pointer address(reference r) { return &r; }
   inline const_pointer address(const_reference r) const { return &r; }
 
-  pointer allocate(size_type n,
-                   typename std::allocator<void>::const_pointer hint = 0);
+  // pointer allocate(size_type n,
+  //                  typename std::allocator_traits<void>::const_pointer hint = 0);
   inline void deallocate(pointer p, size_type);
 
   template <typename... Args>
@@ -105,13 +105,13 @@ class aligned_allocator {
   }
 };
 
-template <class T, int N>
-typename aligned_allocator<T, N>::pointer aligned_allocator<T, N>::allocate(
-    size_type n, typename std::allocator<void>::const_pointer hint) {
-  pointer res = reinterpret_cast<pointer>(aligned_malloc(sizeof(T) * n, N));
-  if (res == 0) throw std::bad_alloc();
-  return res;
-}
+// template <class T, int N>
+// typename aligned_allocator<T, N>::pointer aligned_allocator<T, N>::allocate(
+//     size_type n, typename std::allocator_traits<void>::const_pointer hint) {
+//   pointer res = reinterpret_cast<pointer>(aligned_malloc(sizeof(T) * n, N));
+//   if (res == 0) throw std::bad_alloc();
+//   return res;
+// }
 
 template <class T, int N>
 inline void aligned_allocator<T, N>::deallocate(pointer p, size_type) {

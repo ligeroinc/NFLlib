@@ -40,6 +40,9 @@ public:
     _p(make_pointer(std::forward<Args>(args)...))
   { }
 
+  poly_p(std::initializer_list<T> values): _p(std::make_shared<poly_type>(std::forward<decltype(values)>(values)))
+  { }
+
   poly_p(poly_type const&) = delete;
   poly_p(poly_type&&) = delete;
 
@@ -53,11 +56,11 @@ public:
   poly_type const& poly_obj() const { return *_p; }
 
 public:
- template <class O>
+/*  template <class O>
  poly_p& operator=(O&& o) {
    poly_obj() = std::forward<O>(o);
    return *this;
- }
+ } */
 
  poly_p& operator=(std::initializer_list<T> values) {
    poly_obj() = std::forward<std::initializer_list<T>>(values);
@@ -154,6 +157,10 @@ public:
   */
   template<class Archive> void serialize(Archive & archive) { 
     archive( poly_obj() );
+  }
+
+  template<class Archive> void serialize(Archive & archive, const unsigned int version) { 
+    poly_obj().serialize(archive);
   }
 
   /* set */

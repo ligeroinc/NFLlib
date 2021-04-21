@@ -1,6 +1,8 @@
 #ifndef NFL_ARCH_HPP
-#define NFL_ARCH_HPP
-
+// #define NFL_OPTIMIZED
+// #define __AVX2__
+// #define NTT_AVX2
+// -D__AVX2__ -DNTT_AVX2 -DNFL_OPTIMIZED
 #include "nfl/arch/common.hpp"
 
 #ifdef NFL_OPTIMIZED

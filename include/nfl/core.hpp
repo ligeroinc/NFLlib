@@ -481,7 +481,9 @@ template<class T, size_t Degree, size_t NbModuli> bool poly<T, Degree, NbModuli>
     x[1] = t1;
     return true;
   }
-  const size_t M = ops::ntt_loop<CC_SIMD, poly>::run(x, wtab, winvtab, p);
+
+  // const size_t M = ops::ntt_loop<simd::avx2, poly>::run(x, wtab, winvtab, p);
+  const size_t M = ops::ntt_loop<simd::serial, poly>::run(x, wtab, winvtab, p);
 
   typedef typename std::make_signed<value_type>::type signed_value_type;
   // last two layers

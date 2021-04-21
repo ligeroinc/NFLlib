@@ -152,6 +152,8 @@ struct submod<uint32_t, simd::sse>
   }
 };
 
+template<class type, class tag> struct muladd;
+
 template<class T>
 struct muladd<T, simd::sse> : muladd<T, simd::serial> {};
 
@@ -423,6 +425,8 @@ struct mulmod_shoup<uint16_t, simd::sse>
 //
 // MULADD_SHOUP
 //
+
+template<class T, class tag> struct muladd_shoup;
 
 template<class T>
 struct muladd_shoup<T, simd::sse> : muladd_shoup<T, simd::serial> {};

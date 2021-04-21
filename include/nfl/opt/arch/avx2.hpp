@@ -146,6 +146,8 @@ struct submod<uint32_t, simd::avx2>
   }
 };
 
+template<class type, class tag> struct muladd;
+
 template<class T>
 struct muladd<T, simd::avx2> : muladd<T, simd::sse> {};
 
@@ -161,7 +163,7 @@ template<class poly>
 struct ntt_loop_body<simd::avx2, poly, uint32_t> {
   using value_type = typename poly::value_type;
   using greater_value_type = typename poly::greater_value_type;
-  using simd_type = simd::avx2;
+  using simd_type = simd::avx2; 
 
   ntt_loop_body(value_type const p)
   {
@@ -174,6 +176,7 @@ struct ntt_loop_body<simd::avx2, poly, uint32_t> {
   inline void operator()(value_type* x0, value_type* x1, value_type const* winvtab, value_type const* wtab) const
   {
     __m256i avx_u0, avx_u1, avx_winvtab, avx_wtab, avx_t0, avx_t1, avx_q, avx_t2, avx_cmp;
+
     avx_u0 = _mm256_load_si256((__m256i const*) x0);
     avx_u1 = _mm256_load_si256((__m256i const*) x1);
     avx_winvtab = _mm256_load_si256((__m256i const*) winvtab);
@@ -366,6 +369,7 @@ struct mulmod_shoup<uint16_t, simd::avx2>
 //
 // MULADD_SHOUP
 //
+template<class T, class tag> struct muladd_shoup;
 
 template<class T>
 struct muladd_shoup<T, simd::avx2> : muladd_shoup<T, simd::sse> {};

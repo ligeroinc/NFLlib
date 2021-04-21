@@ -4,7 +4,7 @@
 
 namespace nfl {
 
-template<class T>
+template<class T> 
 struct params;
 
 // Specialization for 16 bits
