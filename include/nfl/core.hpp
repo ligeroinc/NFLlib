@@ -2,6 +2,7 @@
 #define NFL_CORE_HPP
 
 #include <type_traits>
+#include <iterator>
 #include <vector>
 #include <numeric>
 #include <algorithm>
@@ -124,8 +125,21 @@ void poly<T, Degree, NbModuli>::set(It first, It last, bool reduce_coeffs) {
 
     // set the coefficients
     size_t i = 0;
-    for (; i < degree && viter < last; ++i, ++viter, ++iter) {
-      *iter = reduce_coeffs ? (*viter) % p : *viter;
+    if constexpr (std::is_same<typename std::iterator_traits<It>::value_type, mpz_class>::value)
+    {
+      mpz_class mpzp{static_cast<size_t>(p)};
+      for (; i < degree && viter < last; ++i, ++viter, ++iter)
+      {
+        mpz_class mod = *viter % mpzp;
+        *iter = reduce_coeffs ? mod.get_ui() : viter->get_ui();
+      }
+    }
+    else
+    {
+      for (; i < degree && viter < last; ++i, ++viter, ++iter)
+      {
+        *iter = reduce_coeffs ? (*viter) % p : *viter;
+      }
     }
 
     // pad with zeroes if needed
@@ -539,7 +553,7 @@ template<class T, size_t Degree, size_t NbModuli> bool poly<T, Degree, NbModuli>
 // inv_wtab, inv_winvtab tables for the inverse operation and invK the
 // inverse of the polynomialDegree
 template<class T, size_t Degree, size_t NbModuli> inline bool poly<T, Degree, NbModuli>::core::inv_ntt(value_type * x, const value_type* const inv_wtab, const value_type* const inv_winvtab,
-    const value_type invK, value_type const p)
+    [[maybe_unused]] const value_type invK, value_type const p)
 {
   alignas(32) value_type y[degree+1];
 
